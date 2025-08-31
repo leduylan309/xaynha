@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Dự Toán Chi Phí Xây Dựng Nhà Ở Chi Tiết</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 */
+        }
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f5f9; /* bg-slate-100 */
+            z-index: 10;
+        }
+        .summary-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .print-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .cost-item-row:hover {
+            background-color: #f8fafc;
+        }
+        .highlight-section {
+            animation: highlight 2s ease-out;
+        }
+        @keyframes highlight {
+            0% { background-color: rgba(59, 130, 246, 0.2); }
+            100% { background-color: transparent; }
+        }
+        .summary-interactive-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .summary-interactive-row:hover {
+            background-color: #f1f5f9;
+        }
+        @media print {
+            .no-print { display: none; }
+            .table-container { max-height: none; overflow-y: visible; }
+            body { font-size: 10px; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            .main-container { box-shadow: none; border: none; }
+            input[type="checkbox"] { display: none; }
+        }
+        .print-header { display: none; }
+    </style>
+</head>
+<body class="text-slate-800 p-4 sm:p-6 md:p-8">
+    <div class="main-container max-w-7xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-200">
+        
+        <div class="print-header">
+            <h1 class="text-2xl font-bold">BẢNG DỰ TOÁN CHI PHÍ XÂY DỰNG</h1>
+            <p id="print-summary-info" class="mt-2"></p>
+        </div>
+
+        <div class="flex flex-wrap justify-between items-center border-b border-slate-200 pb-4 mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Công Cụ Dự Toán Chi Phí Xây Nhà</h1>
+                <p class="text-slate-500 mt-1">Khu vực tham khảo: Hồ Tràm - Bà Rịa Vũng Tàu</p>
+            </div>
+            <button onclick="window.print()" class="no-print print-button bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                In Báo Giá
+            </button>
+        </div>
+
+        <!-- Phần Input -->
+        <div class="no-print p-6 bg-slate-50 rounded-lg mb-8 border border-slate-200">
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label for="houseArea" class="block text-sm font-medium text-slate-700 mb-2">1. Diện tích một sàn (m²)</label>
+                    <input type="number" id="houseArea" value="100" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                 <div>
+                    <label for="numFloors" class="block text-sm font-medium text-slate-700 mb-2">2. Tổng số tầng (bao gồm trệt)</label>
+                    <input type="number" id="numFloors" value="1" min="1" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="bedrooms" class="block text-sm font-medium text-slate-700 mb-2">3. Số phòng ngủ</label>
+                    <input type="number" id="bedrooms" value="3" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="toilets" class="block text-sm font-medium text-slate-700 mb-2">4. Số toilet</label>
+                    <input type="number" id="toilets" value="2" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <hr class="my-6 border-slate-300">
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                     <label for="roofType" class="block text-sm font-medium text-slate-700 mb-2">5. Loại mái nhà</label>
+                    <select id="roofType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="ton" selected>Mái Tôn</option>
+                        <option value="bang">Mái Bằng (Bê tông)</option>
+                        <option value="ngoi">Mái Ngói (Vì kèo thép)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">6. Phương pháp tính nhân công</label>
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center">
+                            <input type="radio" id="laborDetailed" name="laborModel" value="detailed" class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500">
+                            <label for="laborDetailed" class="ml-2 block text-sm text-slate-900">Chi tiết theo hạng mục</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="laborPackage" name="laborModel" value="package" checked class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500">
+                            <label for="laborPackage" class="ml-2 block text-sm text-slate-900">Trọn gói theo m²</label>
+                        </div>
+                    </div>
+                     <div id="packageLaborInput" class="mt-3">
+                        <label for="packageLaborPrice" class="block text-sm font-medium text-slate-700">Đơn giá nhân công trọn gói / m²</label>
+                        <input type="number" id="packageLaborPrice" value="1800000" class="mt-1 w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-slate-300">
+            <h3 class="text-lg font-semibold text-slate-800 mb-4">7. Tùy chọn vật tư hoàn thiện cơ bản</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Thép</label><select id="materialSteel" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Việt Nhật</option> <option value="tot" selected>Hòa Phát</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Sơn nước</label><select id="materialPaint" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Maxilite</option> <option value="tot" selected>Dulux</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Thiết bị VS</label><select id="materialSanitary" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Viglacera</option> <option value="cao_cap" selected>INAX</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Cửa nhôm</label><select id="materialDoors" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Hệ 700</option> <option value="tot" selected>Xingfa</option> </select></div>
+            </div>
+             <hr class="my-6 border-slate-300">
+            <h3 class="text-lg font-semibold text-slate-800 mb-4">8. Tùy chọn vật tư thay thế</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Sàn nhà</label><select id="floorType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="gach_lat" selected>Gạch Lát Nền</option> <option value="xi_mang">Sàn Bê Tông Mài</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Trần nhà</label><select id="ceilingType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="thach_cao" selected>Trần Thạch Cao</option> <option value="betong_son">Trần Bê Tông Sơn Nước</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Mặt bếp</label><select id="countertopType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="da_bep" selected>Mặt Đá Bếp</option> <option value="betong_bep">Mặt Bếp Bê Tông Mài</option> </select></div>
+            </div>
+        </div>
+
+        <!-- Phần Tổng Quan & Biểu Đồ -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+            <div id="summary" class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 text-center mb-2">Phân Bổ Tổng Chi Phí</h3>
+                    <div class="relative w-full h-56">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 text-center mb-2">Phân Bổ Chi Phí Vật Tư</h3>
+                    <div class="relative w-full h-56">
+                        <canvas id="materialChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng Phân Tích Vật Tư -->
+        <div class="mb-8 no-print">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-4">Bảng Phân Tích Chi Phí Vật Tư</h2>
+            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                <table class="min-w-full">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-2/5">Hạng Mục Vật Tư</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Tổng Tiền (VND)</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Tỷ Trọng</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materialSummaryBody" class="divide-y divide-slate-200">
+                        <!-- Content generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+             <p class="text-xs text-slate-500 mt-2 italic">Nhấn vào một hạng mục để xem chi tiết bên dưới.</p>
+        </div>
+
+
+        <!-- Bảng Chi Tiết -->
+        <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-4">Bảng Dự Toán Chi Tiết</h2>
+        <div class="table-container border border-slate-200 rounded-lg">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th scope="col" class="pl-4 pr-1 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-10"></th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-2/5">Hạng Mục</th>
+                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Số Lượng</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Đơn Vị</th>
+                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Đơn Giá (VND)</th>
+                        <th scope="col" class="px-3 py-3 pr-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Thành Tiền (VND)</th>
+                    </tr>
+                </thead>
+                <tbody id="costTableBody" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+        </div>
+        <p class="text-xs text-slate-500 mt-4 italic">*Lưu ý: Bảng giá trên chỉ mang tính chất tham khảo...</p>
+    </div>
+
+    <script>
+        const prices = {
+            'sat_thep': { 'trung_binh': 18000, 'tot': 20000 }, 'xi_mang_holcim_insee': 95000, 'cat_xay_to': 350000, 'da_1x2': 450000, 'gach_tuynel_8x8x18': 1500, 'betong_tuoi_mac_250': 1400000, 'day_dien_cadivi_2_5': 12000, 'ong_nuoc_binh_minh_pvc_d27': 20000, 'ong_mang_internet': 8000, 'mai_ton_hoa_sen': 120000, 'xa_go_hop_5x10': 80000, 'vi_keo_thep_mai_ngoi': 350000, 'ngoi_lop': 25000, 'vat_tu_chong_tham_sika': 100000, 'betong_thep_san_mai': 260000, 'gach_lat_nen_60x60': 250000, 'san_be_tong_mai': 380000, 'gach_op_tuong_wc_30x60': 220000, 'bot_tret_tuong_jotun': 4500, 'son_lot': { 'trung_binh': 10000, 'tot': 15000 }, 'son_phu': { 'trung_binh': 18000, 'tot': 25000 }, 'tran_thach_cao_vinh_tuong': 160000, 'tran_betong_son_goi': 65000, 'cua_nhom': { 'trung_binh': 1600000, 'tot': 2200000 }, 'cua_go_cong_nghiep': 3500000, 'thiet_bi_ve_sinh': { 'trung_binh': 5000000, 'cao_cap': 8000000 }, 'thiet_bi_dien_panasonic': 3000000, 'tu_bep_mdf': 3000000, 'phu_kien_bep': 5000000, 'mat_da_bep': 1500000, 'bep_betong_mai': 1100000, 'cau_thang_sat_go': 1400000, 'ham_tu_hoai': 15000000, 'bon_nuoc_inox_1500l': 5000000, 'may_bom_nuoc': 2000000, 'cong_sat_hop': 1200000, 'hang_rao_xay_gach': 2000000,
+        };
+        const inputs = {
+            houseArea: document.getElementById('houseArea'), numFloors: document.getElementById('numFloors'), bedrooms: document.getElementById('bedrooms'), toilets: document.getElementById('toilets'), roofType: document.getElementById('roofType'), laborModel: document.querySelectorAll('input[name="laborModel"]'), packageLaborPrice: document.getElementById('packageLaborPrice'), packageLaborInput: document.getElementById('packageLaborInput'), materialSteel: document.getElementById('materialSteel'), materialPaint: document.getElementById('materialPaint'), materialSanitary: document.getElementById('materialSanitary'), materialDoors: document.getElementById('materialDoors'), floorType: document.getElementById('floorType'), ceilingType: document.getElementById('ceilingType'), countertopType: document.getElementById('countertopType'),
+        };
+        const tableBody = document.getElementById('costTableBody');
+        const summaryDiv = document.getElementById('summary');
+        const materialSummaryBody = document.getElementById('materialSummaryBody');
+        let costChart = null;
+        let materialChart = null;
+
+        function formatCurrency(num) { return Math.round(num).toLocaleString('vi-VN'); }
+
+        function createRow(category, item, quantity, unit, unitPrice, isSubItem = false, type, materialCategory) {
+            const total = quantity * unitPrice;
+            const row = document.createElement('tr');
+            
+            if (category) {
+                 row.innerHTML = `<td colspan="6" class="px-4 py-3 font-bold text-base text-blue-800 bg-blue-50">${category}</td>`;
+                 row.id = `section-${category.split(' ')[1]}`; // Simple ID generation
+            } else {
+                 row.className = 'cost-item-row';
+                 row.setAttribute('data-cost', total);
+                 row.setAttribute('data-type', type);
+                 if (materialCategory) row.setAttribute('data-material-category', materialCategory);
+                 row.innerHTML = `
+                    <td class="pl-4 pr-1 py-2 text-center no-print"><input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked></td>
+                    <td class="px-3 py-2 text-sm text-slate-700 ${isSubItem ? 'pl-8' : 'font-semibold'}">${item}</td>
+                    <td class="px-3 py-2 text-sm text-slate-600 text-right">${quantity.toFixed(2)}</td>
+                    <td class="px-3 py-2 text-sm text-slate-600">${unit}</td>
+                    <td class="px-3 py-2 text-sm text-slate-600 text-right">${formatCurrency(unitPrice)}</td>
+                    <td class="px-3 py-2 pr-4 text-sm text-slate-800 font-medium text-right">${formatCurrency(total)}</td>`;
+            }
+            return row;
+        }
+
+        function calculateAndRender() {
+            // --- INPUT & VARIABLE DECLARATION (LOGIC CORRECTED) ---
+            const areaPerFloor = parseFloat(inputs.houseArea.value) || 0;
+            const numFloors = parseInt(inputs.numFloors.value) || 1;
+            const totalArea = areaPerFloor * numFloors; // Corrected: This is now the total construction area
+            
+            const numBedrooms = parseInt(inputs.bedrooms.value) || 0, numToilets = parseInt(inputs.toilets.value) || 0, roofType = inputs.roofType.value, laborModel = document.querySelector('input[name="laborModel"]:checked').value, packageLaborPriceVal = parseFloat(inputs.packageLaborPrice.value) || 0, steelQuality = inputs.materialSteel.value, paintQuality = inputs.materialPaint.value, sanitaryQuality = inputs.materialSanitary.value, doorQuality = inputs.materialDoors.value, floorType = inputs.floorType.value, ceilingType = inputs.ceilingType.value, countertopType = inputs.countertopType.value;
+            
+            if (areaPerFloor === 0) { tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-500">Vui lòng nhập thông tin.</td></tr>'; summaryDiv.innerHTML = ''; return; }
+            
+            tableBody.innerHTML = '';
+            
+            const addItem = (item, quantity, unit, unitPrice, isSubItem, type, materialCategory) => {
+                tableBody.appendChild(createRow(null, item, quantity, unit, unitPrice, isSubItem, type, materialCategory));
+            };
+            const addCategory = (title, id) => {
+                const row = createRow(title)
+                row.id = id;
+                tableBody.appendChild(row);
+            };
+
+            // --- CALCULATIONS (FORMULAS CORRECTED) ---
+
+            if (laborModel === 'package') {
+                addCategory('I. CHI PHÍ NHÂN CÔNG (TRỌN GÓI)', 'section-nhanCong');
+                // Package labor cost is based on total construction area
+                addItem('Nhân công trọn gói', totalArea, 'm²', packageLaborPriceVal, false, 'labor');
+            }
+            
+            addCategory(laborModel === 'package' ? 'II. PHẦN MÓNG & KẾT CẤU' : 'I. PHẦN MÓNG & KẾT CẤU', 'section-ketCau');
+            // Foundation costs now correctly based on ground area (areaPerFloor)
+            if(laborModel === 'detailed') addItem('NC đào đất, thi công móng', areaPerFloor * 0.5, 'm²', 500000, true, 'labor');
+            addItem('Bê tông lót, móng, đà kiềng', areaPerFloor * 0.5 * 0.9, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau');
+            addItem('Thép móng, đà kiềng', areaPerFloor * 0.5 * 100, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
+            // Structure costs now correctly based on total construction area
+            if(laborModel === 'detailed') addItem('NC thi công phần thân', totalArea, 'm²', 1500000, true, 'labor');
+            addItem('Bê tông cột, dầm, sàn', totalArea * 0.25, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau'); // Coefficient corrected
+            addItem('Thép cột, dầm, sàn', totalArea * 120, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
+            
+            addCategory(laborModel === 'package' ? 'III. PHẦN MÁI' : 'II. PHẦN MÁI', 'section-mai');
+            // Roof costs now correctly based on ground area (areaPerFloor)
+            const roofArea = areaPerFloor * 1.2;
+            if (roofType === 'ton') {
+                if(laborModel === 'detailed') addItem('NC lợp mái tôn', roofArea, 'm²', 80000, true, 'labor');
+                addItem('Tôn lợp mái', roofArea, 'm²', prices.mai_ton_hoa_sen, true, 'material', 'mai');
+                addItem('Xà gồ thép hộp 5x10', roofArea, 'm²', prices.xa_go_hop_5x10, true, 'material', 'mai');
+            } else if (roofType === 'bang') {
+                if(laborModel === 'detailed') addItem('NC thi công & chống thấm mái bằng', areaPerFloor, 'm²', 310000, true, 'labor');
+                addItem('Bê tông, thép sàn mái', areaPerFloor, 'm²', prices.betong_thep_san_mai, true, 'material', 'mai');
+                addItem('Vật tư chống thấm Sika', areaPerFloor, 'm²', prices.vat_tu_chong_tham_sika, true, 'material', 'mai');
+            } else if (roofType === 'ngoi') {
+                if(laborModel === 'detailed') addItem('NC lợp ngói', roofArea, 'm²', 150000, true, 'labor');
+                addItem('Vì kèo thép', roofArea, 'm²', prices.vi_keo_thep_mai_ngoi, true, 'material', 'mai');
+                addItem('Ngói lợp', roofArea * 10, 'viên', prices.ngoi_lop, true, 'material', 'mai');
+            }
+
+            addCategory(laborModel === 'package' ? 'IV. XÂY TÔ & ĐIỆN NƯỚC' : 'III. XÂY TÔ & ĐIỆN NƯỚC', 'section-xayToDienNuoc');
+            // Wall area based on total construction area
+            const wallArea = totalArea * 3.5;
+            if(laborModel === 'detailed') addItem('NC xây tô tường', wallArea, 'm²', 150000, true, 'labor');
+            addItem('Gạch Tuynel 8x8x18', wallArea * 70, 'viên', prices.gach_tuynel_8x8x18, true, 'material', 'xayToDienNuoc');
+            addItem('Xi măng xây tô', wallArea * 0.45, 'bao', prices.xi_mang_holcim_insee, true, 'material', 'xayToDienNuoc'); // Coefficient corrected
+            addItem('Cát xây tô', wallArea * 0.05, 'm³', prices.cat_xay_to, true, 'material', 'xayToDienNuoc');
+            // MEP costs based on total construction area
+            if(laborModel === 'detailed') addItem('NC đi điện, nước âm tường', totalArea, 'm²', 150000, true, 'labor');
+            addItem('Vật tư điện (dây, ổ cắm...)', totalArea, 'm²', 120000, true, 'material', 'xayToDienNuoc');
+            addItem('Vật tư nước (ống, van...)', totalArea, 'm²', 100000, true, 'material', 'xayToDienNuoc');
+            addItem('Vật tư mạng/TV', totalArea, 'm²', 30000, true, 'material', 'xayToDienNuoc');
+
+            addCategory(laborModel === 'package' ? 'V. HOÀN THIỆN' : 'IV. HOÀN THIỆN', 'section-hoanThien');
+            const paintArea = wallArea * 1.5, wcWallArea = numToilets * 20;
+            // Kitchen length based on ground area
+            const kitchenLength = areaPerFloor / 15;
+            if (floorType === 'gach_lat') {
+                if(laborModel === 'detailed') addItem('NC ốp lát gạch nền', totalArea, 'm²', 120000, true, 'labor');
+                addItem('Gạch lát nền', totalArea, 'm²', prices.gach_lat_nen_60x60, true, 'material', 'hoanThien');
+            } else {
+                if(laborModel === 'detailed') addItem('NC sàn bê tông mài', totalArea, 'm²', prices.san_be_tong_mai * 0.4, true, 'labor');
+                addItem('Vật tư sàn bê tông mài', totalArea, 'm²', prices.san_be_tong_mai * 0.6, true, 'material', 'hoanThien');
+            }
+            if(laborModel === 'detailed') addItem('NC ốp gạch tường WC', wcWallArea, 'm²', 120000, true, 'labor');
+            addItem('Gạch ốp tường WC', wcWallArea, 'm²', prices.gach_op_tuong_wc_30x60, true, 'material', 'hoanThien');
+            if(laborModel === 'detailed') addItem('NC sơn nước', paintArea, 'm²', 35000, true, 'labor');
+            addItem('Bột trét tường', paintArea, 'm²', prices.bot_tret_tuong_jotun, true, 'material', 'hoanThien');
+            addItem('Sơn lót', paintArea, 'm²', prices.son_lot[paintQuality], true, 'material', 'hoanThien');
+            addItem('Sơn phủ', paintArea, 'm²', prices.son_phu[paintQuality], true, 'material', 'hoanThien');
+            if (ceilingType === 'thach_cao') {
+                if(laborModel === 'detailed') addItem('NC làm trần thạch cao', totalArea*0.8, 'm²', prices.tran_thach_cao_vinh_tuong * 0.3, true, 'labor');
+                addItem('Vật tư trần thạch cao', totalArea * 0.8, 'm²', prices.tran_thach_cao_vinh_tuong * 0.7, true, 'material', 'hoanThien');
+            } else {
+                 if(laborModel === 'detailed') addItem('NC sơn trần bê tông', totalArea, 'm²', prices.tran_betong_son_goi * 0.5, true, 'labor');
+                 addItem('Vật tư sơn trần bê tông', totalArea, 'm²', prices.tran_betong_son_goi * 0.5, true, 'material', 'hoanThien');
+            }
+            if(laborModel === 'detailed') addItem('NC lắp đặt cửa & thiết bị', 1, 'gói', 8000000, true, 'labor');
+            addItem('Cửa đi, cửa sổ nhôm', totalArea*0.18, 'm²', prices.cua_nhom[doorQuality], true, 'material', 'hoanThien');
+            addItem('Cửa phòng ngủ, WC (gỗ CN)', numBedrooms+numToilets, 'bộ', prices.cua_go_cong_nghiep, true, 'material', 'hoanThien');
+            // Stairs only added if more than 1 floor
+            if (numFloors > 1) {
+                addItem('Cầu thang (sắt, gỗ)', 4 * (numFloors - 1), 'm', prices.cau_thang_sat_go, true, 'material', 'hoanThien');
+            }
+            addItem('Thiết bị vệ sinh', numToilets, 'phòng', prices.thiet_bi_ve_sinh[sanitaryQuality], true, 'material', 'hoanThien');
+            addItem('Thiết bị điện (công tắc, đèn)', numBedrooms+numToilets+2, 'phòng', prices.thiet_bi_dien_panasonic, true, 'material', 'hoanThien');
+            addItem('Tủ bếp trên & dưới', kitchenLength, 'md', prices.tu_bep_mdf, true, 'material', 'hoanThien');
+            addItem('Phụ kiện bếp (chậu, vòi)', 1, 'gói', prices.phu_kien_bep, true, 'material', 'hoanThien');
+            if(countertopType === 'da_bep') { addItem('Mặt đá bếp', kitchenLength, 'md', prices.mat_da_bep, true, 'material', 'hoanThien'); } else { addItem('Mặt bếp bê tông mài', kitchenLength, 'md', prices.bep_betong_mai, true, 'material', 'hoanThien'); }
+
+            addCategory(laborModel === 'package' ? 'VI. HẠNG MỤC PHỤ TRỢ & NGOẠI THẤT' : 'V. HẠNG MỤC PHỤ TRỢ & NGOẠI THẤT', 'section-phuTroNgoaiThat');
+            addItem('Hầm tự hoại (phần thô)', 1, 'gói', prices.ham_tu_hoai, false, 'material', 'phuTroNgoaiThat');
+            addItem('Bồn nước Inox 1500L', 1, 'cái', prices.bon_nuoc_inox_1500l, false, 'material', 'phuTroNgoaiThat');
+            addItem('Máy bơm nước', 1, 'cái', prices.may_bom_nuoc, false, 'material', 'phuTroNgoaiThat');
+            addItem('Cổng sắt hộp', 15, 'm²', prices.cong_sat_hop, false, 'material', 'phuTroNgoaiThat');
+            addItem('Hàng rào xây gạch', 20, 'm', prices.hang_rao_xay_gach, false, 'material', 'phuTroNgoaiThat');
+
+            addCategory(laborModel === 'package' ? 'VII. CHI PHÍ KHÁC' : 'VI. CHI PHÍ KHÁC', 'section-khac');
+            addItem('Thiết kế & Xin phép XD', 1, 'gói', (totalArea*150000)+15000000, false, 'other');
+            addItem('Giám sát & Dọn dẹp', 1, 'gói', 0, false, 'other'); // Placeholder, will be calculated in updateTotals
+            
+            addCategory('VIII. CHI PHÍ DỰ PHÒNG', 'section-duPhong');
+            addItem('Dự phòng (10%)', 1, 'gói', 0, false, 'other'); // Placeholder
+
+            updateTotalsAndCharts();
+        }
+        
+        function updateTotalsAndCharts() {
+            let totalMaterialCost = 0, totalLaborCost = 0, totalOtherCosts = 0;
+            let materialCostByCategory = { ketCau: 0, mai: 0, xayToDienNuoc: 0, hoanThien: 0, phuTroNgoaiThat: 0 };
+
+            const allRows = tableBody.querySelectorAll('tr[data-cost]');
+            allRows.forEach(row => {
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (!checkbox || !checkbox.checked) return;
+
+                const cost = parseFloat(row.getAttribute('data-cost')) || 0;
+                const type = row.getAttribute('data-type');
+                const matCategory = row.getAttribute('data-material-category');
+
+                if (type === 'material') {
+                    totalMaterialCost += cost;
+                    if (matCategory) materialCostByCategory[matCategory] += cost;
+                } else if (type === 'labor') {
+                    totalLaborCost += cost;
+                } else if (type === 'other') {
+                    totalOtherCosts += cost;
+                }
+            });
+
+            // Update placeholder costs
+            const finalConstructionCost = totalMaterialCost + totalLaborCost;
+            const giamSatCost = (finalConstructionCost * 0.03) + 5000000;
+            const subtotal = finalConstructionCost + totalOtherCosts + giamSatCost;
+            const duPhongCost = subtotal * 0.1;
+
+            totalOtherCosts += giamSatCost + duPhongCost;
+            
+            // Update the values in the table visually
+            allRows.forEach(row => {
+                 const cell = row.querySelector('td:nth-child(2)');
+                 if (cell && cell.innerText.includes('Giám sát')) {
+                    row.cells[5].innerText = formatCurrency(giamSatCost);
+                 }
+                 if (cell && cell.innerText.includes('Dự phòng')) {
+                    row.cells[5].innerText = formatCurrency(duPhongCost);
+                 }
+            });
+
+            const totalCost = finalConstructionCost + totalOtherCosts;
+            updateSummary(totalMaterialCost, totalLaborCost, totalOtherCosts, totalCost);
+            updateCostChart(totalMaterialCost, totalLaborCost, totalOtherCosts);
+            updateMaterialChart(materialCostByCategory);
+            updateMaterialSummaryTable(materialCostByCategory);
+            
+            const area = parseFloat(inputs.houseArea.value) || 0;
+            const numFloors = parseInt(inputs.numFloors.value) || 1;
+            const totalArea = area * numFloors;
+            const numBedrooms = parseInt(inputs.bedrooms.value) || 0;
+            const numToilets = parseInt(inputs.toilets.value) || 0;
+            document.getElementById('print-summary-info').innerText = `Tổng DTSD: ${totalArea} m², ${numBedrooms} PN, ${numToilets} WC. Tổng dự toán: ${formatCurrency(totalCost)} VND`;
+        }
+
+        function updateMaterialSummaryTable(categoryData) {
+            materialSummaryBody.innerHTML = '';
+            const totalMaterial = Object.values(categoryData).reduce((a,b) => a+b, 0);
+            const categoryMeta = [
+                { id: 'hoanThien', name: 'Hoàn Thiện', color: '#10b981', sectionId: 'section-hoanThien'},
+                { id: 'ketCau', name: 'Kết Cấu', color: '#3b82f6', sectionId: 'section-ketCau' },
+                { id: 'xayToDienNuoc', name: 'Xây Tô & Điện Nước', color: '#f97316', sectionId: 'section-xayToDienNuoc' },
+                { id: 'mai', name: 'Mái', color: '#ef4444', sectionId: 'section-mai' },
+                { id: 'phuTroNgoaiThat', name: 'Phụ Trợ & Ngoại Thất', color: '#8b5cf6', sectionId: 'section-phuTroNgoaiThat' }
+            ];
+
+            categoryMeta.forEach(meta => {
+                const cost = categoryData[meta.id];
+                const percentage = totalMaterial > 0 ? ((cost / totalMaterial) * 100).toFixed(1) : 0;
+                const row = document.createElement('tr');
+                row.className = 'summary-interactive-row';
+                row.onclick = () => scrollToSection(meta.sectionId);
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-800"><div class="flex items-center"><div class="w-3 h-3 rounded-full mr-3" style="background-color: ${meta.color};"></div>${meta.name}</div></td>
+                    <td class="px-4 py-3 text-sm text-slate-700 text-right">${formatCurrency(cost)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700 text-right">${percentage}%</td>
+                `;
+                materialSummaryBody.appendChild(row);
+            });
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if(section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                section.classList.add('highlight-section');
+                setTimeout(() => section.classList.remove('highlight-section'), 2000);
+            }
+        }
+
+        function updateSummary(material, labor, other, total) {
+            summaryDiv.innerHTML = `
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200 col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-4"><div class="p-3 bg-blue-100 rounded-full"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 10v-1m0-6h.01M6 12H5m14 0h-1m-7 6a6 6 0 100-12 6 6 0 000 12z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">TỔNG DỰ TOÁN CHI PHÍ</h3><p class="mt-1 text-3xl font-bold text-blue-600">${formatCurrency(total)} <span class="text-2xl">VND</span></p></div></div></div>
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-green-100 rounded-full"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Chi Phí Vật Liệu</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(material)}</p></div></div></div>
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-amber-100 rounded-full"><svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a3.002 3.002 0 013.428 0M11 16a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Chi Phí Nhân Công</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(labor)}</p></div></div></div>
+            `;
+        }
+        
+        const chartCenterText = {
+            id: 'chartCenterText',
+            beforeDraw(chart, args, options) {
+                if (!options.text) return;
+                const {ctx, chartArea: {top, right, bottom, left, width, height}} = chart;
+                ctx.save();
+                ctx.font = options.font || 'bold 16px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = options.color || '#334155';
+                const textLines = options.text.split('\n');
+                const lineHeight = (parseInt(ctx.font, 10) * 1.2);
+                const totalHeight = lineHeight * textLines.length;
+                let y = top + (height - totalHeight) / 2 + (lineHeight / 2) ;
+                 
+                textLines.forEach(line => {
+                    ctx.fillText(line, left + width / 2, y);
+                    y += lineHeight;
+                });
+                ctx.restore();
+            }
+        };
+        Chart.register(chartCenterText);
+
+        function updateCostChart(material, labor, other) {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            if (costChart) { costChart.destroy(); }
+            costChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Vật Liệu', 'Nhân Công', 'Khác & Dự Phòng'], datasets: [{ data: [material, labor, other], backgroundColor: ['#10B981', '#F59E0B', '#6366F1'], borderColor: '#f8fafc', borderWidth: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels:{ padding: 15, boxWidth: 12, font:{ size: 12 } } }, tooltip: { callbacks: { label: function(c) { const total = c.dataset.data.reduce((a,b)=>a+b,0); const p = total > 0 ? ((c.parsed/total)*100).toFixed(1) : 0; return `${c.label}: ${formatCurrency(c.parsed)} VND (${p}%)`; } } } } }
+            });
+        }
+        
+        function updateMaterialChart(categoryData) {
+            const ctx = document.getElementById('materialChart').getContext('2d');
+            if (materialChart) { materialChart.destroy(); }
+            const totalMaterial = Object.values(categoryData).reduce((a, b) => a + b, 0);
+            materialChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { 
+                    labels: ['Hoàn Thiện', 'Kết Cấu', 'Xây Tô & ĐN', 'Mái', 'Phụ Trợ & NT'], 
+                    datasets: [{ 
+                        data: [categoryData.hoanThien, categoryData.ketCau, categoryData.xayToDienNuoc, categoryData.mai, categoryData.phuTroNgoaiThat], 
+                        backgroundColor: ['#10b981', '#3b82f6', '#f97316', '#ef4444', '#8b5cf6'], 
+                        borderColor: '#f8fafc', 
+                        borderWidth: 4 
+                    }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { 
+                    chartCenterText: {
+                        text: `${formatCurrency(totalMaterial)}\nVND`,
+                        color: '#1e293b',
+                        font: 'bold 18px Inter'
+                    },
+                    legend: { position: 'bottom', labels:{ padding: 10, boxWidth: 10, font:{ size: 11 } } }, 
+                    tooltip: { callbacks: { label: function(c) { const total = c.dataset.data.reduce((a,b)=>a+b,0); const p = total > 0 ? ((c.parsed/total)*100).toFixed(1) : 0; return `${c.label}: ${formatCurrency(c.parsed)} VND (${p}%)`; } } } } }
+            });
+        }
+
+        function handlePrimaryInputChange() {
+            calculateAndRender();
+        }
+
+        document.querySelectorAll('input, select').forEach(input => input.addEventListener('input', handlePrimaryInputChange));
+        document.querySelectorAll('input[name="laborModel"]').forEach(radio => radio.addEventListener('change', handlePrimaryInputChange));
+        tableBody.addEventListener('change', (event) => {
+            if (event.target.type === 'checkbox') {
+                updateTotalsAndCharts();
+            }
+        });
+        window.addEventListener('load', handlePrimaryInputChange);
+    </script>
+</body>
+</html>
+
