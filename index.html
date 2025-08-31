@@ -158,7 +158,7 @@
                         <li><strong>Chi phí Móng & Mái:</strong> Được tính dựa trên <strong>diện tích một sàn</strong>, vì phần móng và mái chỉ có một.</li>
                         <li><strong>Định mức Kết cấu (Đã hiệu chỉnh):</strong> Bê tông thân nhà được tính khoảng <strong>0.18 m³/m²</strong> DTSD. Thép thân nhà được tính khoảng <strong>35 kg/m²</strong> DTSD. Đây là các định mức tham khảo cho kết cấu nhà phố/nhà cấp 4 thông thường.</li>
                         <li><strong>Diện tích Tường Xây Tô:</strong> Được ước tính bằng công thức: <code>(Tổng DTSD x 3.0) + (Số P.Ngủ x 15m²) + (Số Toilet x 5m²)</code>. Hệ số 3.0 đại diện cho tường bao và các tường chính. Mỗi phòng ngủ/toilet được cộng thêm diện tích tường ngăn tương ứng.</li>
-                        <li><strong>Các hạng mục khác</strong> như cửa, thiết bị vệ sinh, thiết bị điện được tính toán trực tiếp dựa trên số lượng phòng bạn đã nhập.</li>
+                        <li><strong>Nhân công chi tiết:</strong> Các đơn giá chi tiết được phân bổ lại từ đơn giá trọn gói tiêu chuẩn để đảm bảo tính cân bằng và hợp lý.</li>
                     </ul>
                 </div>
             </details>
@@ -294,7 +294,7 @@
             if(laborModel === 'detailed') addItem('NC đào đất, thi công móng', areaPerFloor * 0.5, 'm²', 500000, true, 'labor');
             addItem('Bê tông lót, móng, đà kiềng', areaPerFloor * 0.5 * 0.3, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau');
             addItem('Thép móng, đà kiềng', areaPerFloor * 0.5 * 40, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
-            if(laborModel === 'detailed') addItem('NC thi công phần thân', totalArea, 'm²', 1500000, true, 'labor');
+            if(laborModel === 'detailed') addItem('NC thi công phần thân', totalArea, 'm²', 850000, true, 'labor'); // REBALANCED
             addItem('Bê tông cột, dầm, sàn', totalArea * 0.18, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau'); 
             addItem('Thép cột, dầm, sàn', totalArea * 35, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
             
@@ -316,7 +316,7 @@
 
             addCategory(laborModel === 'package' ? 'IV. XÂY TÔ & ĐIỆN NƯỚC' : 'III. XÂY TÔ & ĐIỆN NƯỚC', 'section-xayToDienNuoc');
             const wallArea = (totalArea * 3.0) + (numBedrooms * 15) + (numToilets * 5);
-            if(laborModel === 'detailed') addItem('NC xây tô tường', wallArea, 'm²', 150000, true, 'labor');
+            if(laborModel === 'detailed') addItem('NC xây tô tường', wallArea, 'm²', 80000, true, 'labor'); // REBALANCED
             addItem('Gạch Tuynel 8x8x18', wallArea * 70, 'viên', prices.gach_tuynel_8x8x18, true, 'material', 'xayToDienNuoc');
             addItem('Xi măng xây tô', wallArea * 0.45, 'bao', prices.xi_mang_holcim_insee, true, 'material', 'xayToDienNuoc'); 
             addItem('Cát xây tô', wallArea * 0.05, 'm³', prices.cat_xay_to, true, 'material', 'xayToDienNuoc');
