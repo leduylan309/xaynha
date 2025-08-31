@@ -52,6 +52,9 @@
         .summary-interactive-row:hover {
             background-color: #f1f5f9;
         }
+        details > summary {
+            cursor: pointer;
+        }
         @media print {
             .no-print { display: none; }
             .table-container { max-height: none; overflow-y: visible; }
@@ -145,6 +148,20 @@
                 <div><label class="block text-sm font-medium text-slate-700 mb-1">Trần nhà</label><select id="ceilingType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="thach_cao" selected>Trần Thạch Cao</option> <option value="betong_son">Trần Bê Tông Sơn Nước</option> </select></div>
                 <div><label class="block text-sm font-medium text-slate-700 mb-1">Mặt bếp</label><select id="countertopType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="da_bep" selected>Mặt Đá Bếp</option> <option value="betong_bep">Mặt Bếp Bê Tông Mài</option> </select></div>
             </div>
+            <hr class="my-6 border-slate-300">
+            <details class="bg-slate-100 p-4 rounded-lg">
+                <summary class="font-semibold text-slate-800">Giải Thích Công Thức Tính</summary>
+                <div class="prose prose-sm mt-2 text-slate-600">
+                    <p>Công cụ này sử dụng các định mức và hệ số tương đối dựa trên kinh nghiệm thi công thực tế. Dưới đây là các nguyên tắc tính toán chính:</p>
+                    <ul>
+                        <li><strong>Tổng Diện Tích Xây Dựng (DTSD)</strong> = (Diện tích một sàn) x (Số tầng). Đây là cơ sở để tính toán hầu hết các chi phí.</li>
+                        <li><strong>Chi phí Móng & Mái:</strong> Được tính dựa trên <strong>diện tích một sàn</strong>, vì phần móng và mái chỉ có một.</li>
+                        <li><strong>Định mức Kết cấu (Đã hiệu chỉnh):</strong> Bê tông thân nhà được tính khoảng <strong>0.18 m³/m²</strong> DTSD. Thép thân nhà được tính khoảng <strong>35 kg/m²</strong> DTSD. Đây là các định mức tham khảo cho kết cấu nhà phố/nhà cấp 4 thông thường.</li>
+                        <li><strong>Diện tích Tường Xây Tô:</strong> Được ước tính bằng công thức: <code>(Tổng DTSD x 3.0) + (Số P.Ngủ x 15m²) + (Số Toilet x 5m²)</code>. Hệ số 3.0 đại diện cho tường bao và các tường chính. Mỗi phòng ngủ/toilet được cộng thêm diện tích tường ngăn tương ứng.</li>
+                        <li><strong>Các hạng mục khác</strong> như cửa, thiết bị vệ sinh, thiết bị điện được tính toán trực tiếp dựa trên số lượng phòng bạn đã nhập.</li>
+                    </ul>
+                </div>
+            </details>
         </div>
 
         <!-- Phần Tổng Quan & Biểu Đồ -->
@@ -266,26 +283,22 @@
                 tableBody.appendChild(row);
             };
 
-            // --- CALCULATIONS (FORMULAS CORRECTED) ---
+            // --- CALCULATIONS (FORMULAS CORRECTED & REFINED) ---
 
             if (laborModel === 'package') {
                 addCategory('I. CHI PHÍ NHÂN CÔNG (TRỌN GÓI)', 'section-nhanCong');
-                // Package labor cost is based on total construction area
                 addItem('Nhân công trọn gói', totalArea, 'm²', packageLaborPriceVal, false, 'labor');
             }
             
             addCategory(laborModel === 'package' ? 'II. PHẦN MÓNG & KẾT CẤU' : 'I. PHẦN MÓNG & KẾT CẤU', 'section-ketCau');
-            // Foundation costs now correctly based on ground area (areaPerFloor)
             if(laborModel === 'detailed') addItem('NC đào đất, thi công móng', areaPerFloor * 0.5, 'm²', 500000, true, 'labor');
-            addItem('Bê tông lót, móng, đà kiềng', areaPerFloor * 0.5 * 0.9, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau');
-            addItem('Thép móng, đà kiềng', areaPerFloor * 0.5 * 100, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
-            // Structure costs now correctly based on total construction area
+            addItem('Bê tông lót, móng, đà kiềng', areaPerFloor * 0.5 * 0.3, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau');
+            addItem('Thép móng, đà kiềng', areaPerFloor * 0.5 * 40, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
             if(laborModel === 'detailed') addItem('NC thi công phần thân', totalArea, 'm²', 1500000, true, 'labor');
-            addItem('Bê tông cột, dầm, sàn', totalArea * 0.25, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau'); // Coefficient corrected
-            addItem('Thép cột, dầm, sàn', totalArea * 120, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
+            addItem('Bê tông cột, dầm, sàn', totalArea * 0.18, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau'); 
+            addItem('Thép cột, dầm, sàn', totalArea * 35, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
             
             addCategory(laborModel === 'package' ? 'III. PHẦN MÁI' : 'II. PHẦN MÁI', 'section-mai');
-            // Roof costs now correctly based on ground area (areaPerFloor)
             const roofArea = areaPerFloor * 1.2;
             if (roofType === 'ton') {
                 if(laborModel === 'detailed') addItem('NC lợp mái tôn', roofArea, 'm²', 80000, true, 'labor');
@@ -302,21 +315,19 @@
             }
 
             addCategory(laborModel === 'package' ? 'IV. XÂY TÔ & ĐIỆN NƯỚC' : 'III. XÂY TÔ & ĐIỆN NƯỚC', 'section-xayToDienNuoc');
-            // Wall area based on total construction area
-            const wallArea = totalArea * 3.5;
+            const wallArea = (totalArea * 3.0) + (numBedrooms * 15) + (numToilets * 5);
             if(laborModel === 'detailed') addItem('NC xây tô tường', wallArea, 'm²', 150000, true, 'labor');
             addItem('Gạch Tuynel 8x8x18', wallArea * 70, 'viên', prices.gach_tuynel_8x8x18, true, 'material', 'xayToDienNuoc');
-            addItem('Xi măng xây tô', wallArea * 0.45, 'bao', prices.xi_mang_holcim_insee, true, 'material', 'xayToDienNuoc'); // Coefficient corrected
+            addItem('Xi măng xây tô', wallArea * 0.45, 'bao', prices.xi_mang_holcim_insee, true, 'material', 'xayToDienNuoc'); 
             addItem('Cát xây tô', wallArea * 0.05, 'm³', prices.cat_xay_to, true, 'material', 'xayToDienNuoc');
-            // MEP costs based on total construction area
             if(laborModel === 'detailed') addItem('NC đi điện, nước âm tường', totalArea, 'm²', 150000, true, 'labor');
             addItem('Vật tư điện (dây, ổ cắm...)', totalArea, 'm²', 120000, true, 'material', 'xayToDienNuoc');
             addItem('Vật tư nước (ống, van...)', totalArea, 'm²', 100000, true, 'material', 'xayToDienNuoc');
             addItem('Vật tư mạng/TV', totalArea, 'm²', 30000, true, 'material', 'xayToDienNuoc');
 
             addCategory(laborModel === 'package' ? 'V. HOÀN THIỆN' : 'IV. HOÀN THIỆN', 'section-hoanThien');
-            const paintArea = wallArea * 1.5, wcWallArea = numToilets * 20;
-            // Kitchen length based on ground area
+            const paintArea = wallArea * 1.5;
+            const wcWallArea = numToilets * 20;
             const kitchenLength = areaPerFloor / 15;
             if (floorType === 'gach_lat') {
                 if(laborModel === 'detailed') addItem('NC ốp lát gạch nền', totalArea, 'm²', 120000, true, 'labor');
@@ -341,7 +352,6 @@
             if(laborModel === 'detailed') addItem('NC lắp đặt cửa & thiết bị', 1, 'gói', 8000000, true, 'labor');
             addItem('Cửa đi, cửa sổ nhôm', totalArea*0.18, 'm²', prices.cua_nhom[doorQuality], true, 'material', 'hoanThien');
             addItem('Cửa phòng ngủ, WC (gỗ CN)', numBedrooms+numToilets, 'bộ', prices.cua_go_cong_nghiep, true, 'material', 'hoanThien');
-            // Stairs only added if more than 1 floor
             if (numFloors > 1) {
                 addItem('Cầu thang (sắt, gỗ)', 4 * (numFloors - 1), 'm', prices.cau_thang_sat_go, true, 'material', 'hoanThien');
             }
@@ -464,7 +474,7 @@
                 <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200 col-span-1 md:col-span-2">
                     <div class="flex items-center gap-4"><div class="p-3 bg-blue-100 rounded-full"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 10v-1m0-6h.01M6 12H5m14 0h-1m-7 6a6 6 0 100-12 6 6 0 000 12z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">TỔNG DỰ TOÁN CHI PHÍ</h3><p class="mt-1 text-3xl font-bold text-blue-600">${formatCurrency(total)} <span class="text-2xl">VND</span></p></div></div></div>
                 <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-green-100 rounded-full"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Chi Phí Vật Liệu</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(material)}</p></div></div></div>
-                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-amber-100 rounded-full"><svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a3.002 3.002 0 013.428 0M11 16a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Chi Phí Nhân Công</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(labor)}</p></div></div></div>
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-amber-100 rounded-full"><svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283-.356-1.857m0 0a3.002 3.002 0 013.428 0M11 16a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Chi Phí Nhân Công</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(labor)}</p></div></div></div>
             `;
         }
         
