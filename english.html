@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed House Construction Cost Estimation Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            /* bg-slate-50 */
+        }
+        
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f5f9;
+            /* bg-slate-100 */
+            z-index: 10;
+        }
+        
+        .summary-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        .print-button {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .cost-item-row:hover {
+            background-color: #f8fafc;
+        }
+        
+        .highlight-section {
+            animation: highlight 2s ease-out;
+        }
+        
+        @keyframes highlight {
+            0% {
+                background-color: rgba(59, 130, 246, 0.2);
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+        
+        .summary-interactive-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .summary-interactive-row:hover {
+            background-color: #f1f5f9;
+        }
+        
+        details>summary {
+            cursor: pointer;
+        }
+        
+        @media print {
+            .no-print {
+                display: none;
+            }
+            .table-container {
+                max-height: none;
+                overflow-y: visible;
+            }
+            body {
+                font-size: 10px;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .main-container {
+                box-shadow: none;
+                border: none;
+            }
+            input[type="checkbox"] {
+                display: none;
+            }
+        }
+        
+        .print-header {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 p-4 sm:p-6 md:p-8">
+    <div class="main-container max-w-7xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-200">
+
+        <div class="print-header">
+            <h1 class="text-2xl font-bold">CONSTRUCTION COST ESTIMATION TABLE</h1>
+            <p id="print-summary-info" class="mt-2"></p>
+        </div>
+
+        <div class="flex flex-wrap justify-between items-center border-b border-slate-200 pb-4 mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">House Construction Cost Estimation Tool</h1>
+                <p class="text-slate-500 mt-1">Reference area: Ho Tram - Ba Ria Vung Tau</p>
+            </div>
+            <button onclick="window.print()" class="no-print print-button bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Quote
+            </button>
+        </div>
+
+        <!-- Phần Input -->
+        <div class="no-print p-6 bg-slate-50 rounded-lg mb-8 border border-slate-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label for="houseArea" class="block text-sm font-medium text-slate-700 mb-2">1. Floor area per level (m²)</label>
+                    <input type="number" id="houseArea" value="100" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="numFloors" class="block text-sm font-medium text-slate-700 mb-2">2. Total number of floors (including ground floor)</label>
+                    <input type="number" id="numFloors" value="1" min="1" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="bedrooms" class="block text-sm font-medium text-slate-700 mb-2">3. Number of bedrooms</label>
+                    <input type="number" id="bedrooms" value="3" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="toilets" class="block text-sm font-medium text-slate-700 mb-2">4. Number of toilets</label>
+                    <input type="number" id="toilets" value="2" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <hr class="my-6 border-slate-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="roofType" class="block text-sm font-medium text-slate-700 mb-2">5. Roof type</label>
+                    <select id="roofType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="ton" selected>Corrugated Iron Roof</option>
+                        <option value="bang">Flat Roof (Concrete)</option>
+                        <option value="ngoi">Tile Roof (Steel Frame)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">6. Labor calculation method</label>
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center">
+                            <input type="radio" id="laborDetailed" name="laborModel" value="detailed" class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500">
+                            <label for="laborDetailed" class="ml-2 block text-sm text-slate-900">Detailed by category</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="laborPackage" name="laborModel" value="package" checked class="h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500">
+                            <label for="laborPackage" class="ml-2 block text-sm text-slate-900">Package rate per m²</label>
+                        </div>
+                    </div>
+                    <div id="packageLaborInput" class="mt-3">
+                        <label for="packageLaborPrice" class="block text-sm font-medium text-slate-700">Package labor unit price / m²</label>
+                        <input type="number" id="packageLaborPrice" value="1800000" class="mt-1 w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-slate-300">
+            <h3 class="text-lg font-semibold text-slate-800 mb-4">7. Basic finishing material options</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Steel</label><select id="materialSteel" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Viet Nhat</option> <option value="tot" selected>Hoa Phat</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Water-based Paint</label><select id="materialPaint" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Maxilite</option> <option value="tot" selected>Dulux</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Sanitary Equipment</label><select id="materialSanitary" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Viglacera</option> <option value="cao_cap" selected>INAX</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Aluminum Doors</label><select id="materialDoors" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="trung_binh">Series 700</option> <option value="tot" selected>Xingfa</option> </select></div>
+            </div>
+            <hr class="my-6 border-slate-300">
+            <h3 class="text-lg font-semibold text-slate-800 mb-4">8. Alternative material options</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Floor</label><select id="floorType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="gach_lat" selected>Floor Tiles</option> <option value="xi_mang">Polished Concrete Floor</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Ceiling</label><select id="ceilingType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="thach_cao" selected>Gypsum Ceiling</option> <option value="betong_son">Painted Concrete Ceiling</option> </select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Kitchen Counter</label><select id="countertopType" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"> <option value="da_bep" selected>Stone Countertop</option> <option value="betong_bep">Polished Concrete Countertop</option> </select></div>
+            </div>
+            <hr class="my-6 border-slate-300">
+            <details class="bg-slate-100 p-4 rounded-lg">
+                <summary class="font-semibold text-slate-800">Calculation Formula Explanation</summary>
+                <div class="prose prose-sm mt-2 text-slate-600">
+                    <p>This tool uses relative norms and coefficients based on actual construction experience. Below are the main calculation principles:</p>
+                    <ul>
+                        <li><strong>Total Construction Area (TCA)</strong> = (Floor area per level) x (Number of floors). This is the basis for calculating most costs.</li>
+                        <li><strong>Foundation & Roof Costs:</strong> Calculated based on <strong>floor area per level</strong>, as there is only one foundation and roof section.</li>
+                        <li><strong>Structural Norms (Adjusted):</strong> House concrete is calculated at approximately <strong>0.18 m³/m²</strong> TCA. House steel is calculated at approximately <strong>35 kg/m²</strong> TCA. These are reference norms for
+                            typical townhouse/single-story house structures.</li>
+                        <li><strong>Wall Construction Area:</strong> Estimated using the formula: <code>(Total TCA x 3.0) + (Number of Bedrooms x 15m²) + (Number of Toilets x 5m²)</code>. The coefficient 3.0 represents perimeter walls and main walls. Each
+                            bedroom/toilet adds corresponding partition wall area.</li>
+                        <li><strong>Detailed Labor:</strong> Detailed unit prices are redistributed from standard package prices to ensure balance and reasonableness.</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
+        <!-- Phần Tổng Quan & Biểu Đồ -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+            <div id="summary" class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 text-center mb-2">Total Cost Distribution</h3>
+                    <div class="relative w-full h-56">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="text-lg font-semibold text-slate-800 text-center mb-2">Material Cost Distribution</h3>
+                    <div class="relative w-full h-56">
+                        <canvas id="materialChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng Phân Tích Vật Tư -->
+        <div class="mb-8 no-print">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-4">Material Cost Analysis Table</h2>
+            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                <table class="min-w-full">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-2/5">Material Category</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Total Amount (VND)</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materialSummaryBody" class="divide-y divide-slate-200">
+                        <!-- Content generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-slate-500 mt-2 italic">Click on a category to view details below.</p>
+        </div>
+
+
+        <!-- Bảng Chi Tiết -->
+        <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-4">Detailed Cost Estimation Table</h2>
+        <div class="table-container border border-slate-200 rounded-lg">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th scope="col" class="pl-4 pr-1 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-10"></th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-2/5">Category</th>
+                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Unit</th>
+                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Unit Price (VND)</th>
+                        <th scope="col" class="px-3 py-3 pr-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Total Amount (VND)</th>
+                    </tr>
+                </thead>
+                <tbody id="costTableBody" class="bg-white divide-y divide-slate-200"></tbody>
+            </table>
+        </div>
+        <p class="text-xs text-slate-500 mt-4 italic">*Note: The above price table is for reference only...</p>
+    </div>
+
+    <script>
+        const prices = {
+            'sat_thep': {
+                'trung_binh': 18000,
+                'tot': 20000
+            },
+            'xi_mang_holcim_insee': 95000,
+            'cat_xay_to': 350000,
+            'da_1x2': 450000,
+            'gach_tuynel_8x8x18': 1500,
+            'betong_tuoi_mac_250': 1400000,
+            'day_dien_cadivi_2_5': 12000,
+            'ong_nuoc_binh_minh_pvc_d27': 20000,
+            'ong_mang_internet': 8000,
+            'mai_ton_hoa_sen': 120000,
+            'xa_go_hop_5x10': 80000,
+            'vi_keo_thep_mai_ngoi': 350000,
+            'ngoi_lop': 25000,
+            'vat_tu_chong_tham_sika': 100000,
+            'betong_thep_san_mai': 260000,
+            'gach_lat_nen_60x60': 250000,
+            'san_be_tong_mai': 380000,
+            'gach_op_tuong_wc_30x60': 220000,
+            'bot_tret_tuong_jotun': 4500,
+            'son_lot': {
+                'trung_binh': 10000,
+                'tot': 15000
+            },
+            'son_phu': {
+                'trung_binh': 18000,
+                'tot': 25000
+            },
+            'tran_thach_cao_vinh_tuong': 160000,
+            'tran_betong_son_goi': 65000,
+            'cua_nhom': {
+                'trung_binh': 1600000,
+                'tot': 2200000
+            },
+            'cua_go_cong_nghiep': 3500000,
+            'thiet_bi_ve_sinh': {
+                'trung_binh': 5000000,
+                'cao_cap': 8000000
+            },
+            'thiet_bi_dien_panasonic': 3000000,
+            'tu_bep_mdf': 3000000,
+            'phu_kien_bep': 5000000,
+            'mat_da_bep': 1500000,
+            'bep_betong_mai': 1100000,
+            'cau_thang_sat_go': 1400000,
+            'ham_tu_hoai': 15000000,
+            'bon_nuoc_inox_1500l': 5000000,
+            'may_bom_nuoc': 2000000,
+            'cong_sat_hop': 1200000,
+            'hang_rao_xay_gach': 2000000,
+        };
+        const inputs = {
+            houseArea: document.getElementById('houseArea'),
+            numFloors: document.getElementById('numFloors'),
+            bedrooms: document.getElementById('bedrooms'),
+            toilets: document.getElementById('toilets'),
+            roofType: document.getElementById('roofType'),
+            laborModel: document.querySelectorAll('input[name="laborModel"]'),
+            packageLaborPrice: document.getElementById('packageLaborPrice'),
+            packageLaborInput: document.getElementById('packageLaborInput'),
+            materialSteel: document.getElementById('materialSteel'),
+            materialPaint: document.getElementById('materialPaint'),
+            materialSanitary: document.getElementById('materialSanitary'),
+            materialDoors: document.getElementById('materialDoors'),
+            floorType: document.getElementById('floorType'),
+            ceilingType: document.getElementById('ceilingType'),
+            countertopType: document.getElementById('countertopType'),
+        };
+        const tableBody = document.getElementById('costTableBody');
+        const summaryDiv = document.getElementById('summary');
+        const materialSummaryBody = document.getElementById('materialSummaryBody');
+        let costChart = null;
+        let materialChart = null;
+
+        function formatCurrency(num) {
+            return Math.round(num).toLocaleString('vi-VN');
+        }
+
+        function createRow(category, item, quantity, unit, unitPrice, isSubItem = false, type, materialCategory) {
+            const total = quantity * unitPrice;
+            const row = document.createElement('tr');
+
+            if (category) {
+                row.innerHTML = `<td colspan="6" class="px-4 py-3 font-bold text-base text-blue-800 bg-blue-50">${category}</td>`;
+                row.id = `section-${category.split(' ')[1]}`; // Simple ID generation
+            } else {
+                row.className = 'cost-item-row';
+                row.setAttribute('data-cost', total);
+                row.setAttribute('data-type', type);
+                if (materialCategory) row.setAttribute('data-material-category', materialCategory);
+                row.innerHTML = `
+                    <td class="pl-4 pr-1 py-2 text-center no-print"><input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked></td>
+                    <td class="px-3 py-2 text-sm text-slate-700 ${isSubItem ? 'pl-8' : 'font-semibold'}">${item}</td>
+                    <td class="px-3 py-2 text-sm text-slate-600 text-right">${quantity.toFixed(2)}</td>
+                    <td class="px-3 py-2 text-sm text-slate-600">${unit}</td>
+                    <td class="px-3 py-2 text-sm text-slate-600 text-right">${formatCurrency(unitPrice)}</td>
+                    <td class="px-3 py-2 pr-4 text-sm text-slate-800 font-medium text-right">${formatCurrency(total)}</td>`;
+            }
+            return row;
+        }
+
+        function calculateAndRender() {
+            // --- INPUT & VARIABLE DECLARATION (LOGIC CORRECTED) ---
+            const areaPerFloor = parseFloat(inputs.houseArea.value) || 0;
+            const numFloors = parseInt(inputs.numFloors.value) || 1;
+            const totalArea = areaPerFloor * numFloors; // Corrected: This is now the total construction area
+
+            const numBedrooms = parseInt(inputs.bedrooms.value) || 0,
+                numToilets = parseInt(inputs.toilets.value) || 0,
+                roofType = inputs.roofType.value,
+                laborModel = document.querySelector('input[name="laborModel"]:checked').value,
+                packageLaborPriceVal = parseFloat(inputs.packageLaborPrice.value) || 0,
+                steelQuality = inputs.materialSteel.value,
+                paintQuality = inputs.materialPaint.value,
+                sanitaryQuality = inputs.materialSanitary.value,
+                doorQuality = inputs.materialDoors.value,
+                floorType = inputs.floorType.value,
+                ceilingType = inputs.ceilingType.value,
+                countertopType = inputs.countertopType.value;
+
+            if (areaPerFloor === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-500">Please enter information.</td></tr>';
+                summaryDiv.innerHTML = '';
+                return;
+            }
+
+            tableBody.innerHTML = '';
+
+            const addItem = (item, quantity, unit, unitPrice, isSubItem, type, materialCategory) => {
+                tableBody.appendChild(createRow(null, item, quantity, unit, unitPrice, isSubItem, type, materialCategory));
+            };
+            const addCategory = (title, id) => {
+                const row = createRow(title)
+                row.id = id;
+                tableBody.appendChild(row);
+            };
+
+            // --- CALCULATIONS (FORMULAS CORRECTED & REFINED) ---
+
+            if (laborModel === 'package') {
+                addCategory('I. LABOR COSTS (PACKAGE)', 'section-nhanCong');
+                addItem('Package labor', totalArea, 'm²', packageLaborPriceVal, false, 'labor');
+            }
+
+            addCategory(laborModel === 'package' ? 'II. FOUNDATION & STRUCTURE' : 'I. FOUNDATION & STRUCTURE', 'section-ketCau');
+            if (laborModel === 'detailed') addItem('Labor: excavation, foundation construction', areaPerFloor * 0.5, 'm²', 500000, true, 'labor');
+            addItem('Concrete pad, foundation, tie beam', areaPerFloor * 0.5 * 0.3, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau');
+            addItem('Foundation steel, tie beam', areaPerFloor * 0.5 * 40, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
+            if (laborModel === 'detailed') addItem('Labor: main structure construction', totalArea, 'm²', 850000, true, 'labor'); // REBALANCED
+            addItem('Concrete columns, beams, slabs', totalArea * 0.18, 'm³', prices.betong_tuoi_mac_250, true, 'material', 'ketCau');
+            addItem('Steel columns, beams, slabs', totalArea * 35, 'kg', prices.sat_thep[steelQuality], true, 'material', 'ketCau');
+
+            addCategory(laborModel === 'package' ? 'III. ROOF SECTION' : 'II. ROOF SECTION', 'section-mai');
+            const roofArea = areaPerFloor * 1.2;
+            if (roofType === 'ton') {
+                if (laborModel === 'detailed') addItem('Labor: corrugated iron roofing', roofArea, 'm²', 80000, true, 'labor');
+                addItem('Corrugated iron roofing', roofArea, 'm²', prices.mai_ton_hoa_sen, true, 'material', 'mai');
+                addItem('Steel box purlin 5x10', roofArea, 'm²', prices.xa_go_hop_5x10, true, 'material', 'mai');
+            } else if (roofType === 'bang') {
+                if (laborModel === 'detailed') addItem('Labor: flat roof construction & waterproofing', areaPerFloor, 'm²', 310000, true, 'labor');
+                addItem('Concrete, steel roof slab', areaPerFloor, 'm²', prices.betong_thep_san_mai, true, 'material', 'mai');
+                addItem('Sika waterproofing materials', areaPerFloor, 'm²', prices.vat_tu_chong_tham_sika, true, 'material', 'mai');
+            } else if (roofType === 'ngoi') {
+                if (laborModel === 'detailed') addItem('Labor: tile roofing', roofArea, 'm²', 150000, true, 'labor');
+                addItem('Steel roof truss', roofArea, 'm²', prices.vi_keo_thep_mai_ngoi, true, 'material', 'mai');
+                addItem('Roof tiles', roofArea * 10, 'pieces', prices.ngoi_lop, true, 'material', 'mai');
+            }
+
+            addCategory(laborModel === 'package' ? 'IV. MASONRY & ELECTRICAL/PLUMBING' : 'III. MASONRY & ELECTRICAL/PLUMBING', 'section-xayToDienNuoc');
+            const wallArea = (totalArea * 3.0) + (numBedrooms * 15) + (numToilets * 5);
+            if (laborModel === 'detailed') addItem('Labor: wall masonry & plastering', wallArea, 'm²', 80000, true, 'labor'); // REBALANCED
+            addItem('Tunnel bricks 8x8x18', wallArea * 70, 'pieces', prices.gach_tuynel_8x8x18, true, 'material', 'xayToDienNuoc');
+            addItem('Masonry cement', wallArea * 0.45, 'bags', prices.xi_mang_holcim_insee, true, 'material', 'xayToDienNuoc');
+            addItem('Masonry sand', wallArea * 0.05, 'm³', prices.cat_xay_to, true, 'material', 'xayToDienNuoc');
+            if (laborModel === 'detailed') addItem('Labor: electrical, plumbing installation', totalArea, 'm²', 150000, true, 'labor');
+            addItem('Electrical materials (wires, outlets...)', totalArea, 'm²', 120000, true, 'material', 'xayToDienNuoc');
+            addItem('Plumbing materials (pipes, valves...)', totalArea, 'm²', 100000, true, 'material', 'xayToDienNuoc');
+            addItem('Network/TV materials', totalArea, 'm²', 30000, true, 'material', 'xayToDienNuoc');
+
+            addCategory(laborModel === 'package' ? 'V. FINISHING' : 'IV. FINISHING', 'section-hoanThien');
+            const paintArea = wallArea * 1.5;
+            const wcWallArea = numToilets * 20;
+            const kitchenLength = areaPerFloor / 15;
+            if (floorType === 'gach_lat') {
+                if (laborModel === 'detailed') addItem('Labor: floor tiling', totalArea, 'm²', 120000, true, 'labor');
+                addItem('Floor tiles', totalArea, 'm²', prices.gach_lat_nen_60x60, true, 'material', 'hoanThien');
+            } else {
+                if (laborModel === 'detailed') addItem('Labor: polished concrete floor', totalArea, 'm²', prices.san_be_tong_mai * 0.4, true, 'labor');
+                addItem('Polished concrete floor materials', totalArea, 'm²', prices.san_be_tong_mai * 0.6, true, 'material', 'hoanThien');
+            }
+            if (laborModel === 'detailed') addItem('Labor: bathroom wall tiling', wcWallArea, 'm²', 120000, true, 'labor');
+            addItem('Bathroom wall tiles', wcWallArea, 'm²', prices.gach_op_tuong_wc_30x60, true, 'material', 'hoanThien');
+            if (laborModel === 'detailed') addItem('Labor: painting', paintArea, 'm²', 35000, true, 'labor');
+            addItem('Wall putty', paintArea, 'm²', prices.bot_tret_tuong_jotun, true, 'material', 'hoanThien');
+            addItem('Primer paint', paintArea, 'm²', prices.son_lot[paintQuality], true, 'material', 'hoanThien');
+            addItem('Topcoat paint', paintArea, 'm²', prices.son_phu[paintQuality], true, 'material', 'hoanThien');
+            if (ceilingType === 'thach_cao') {
+                if (laborModel === 'detailed') addItem('Labor: gypsum ceiling installation', totalArea * 0.8, 'm²', prices.tran_thach_cao_vinh_tuong * 0.3, true, 'labor');
+                addItem('Gypsum ceiling materials', totalArea * 0.8, 'm²', prices.tran_thach_cao_vinh_tuong * 0.7, true, 'material', 'hoanThien');
+            } else {
+                if (laborModel === 'detailed') addItem('Labor: concrete ceiling painting', totalArea, 'm²', prices.tran_betong_son_goi * 0.5, true, 'labor');
+                addItem('Concrete ceiling painting materials', totalArea, 'm²', prices.tran_betong_son_goi * 0.5, true, 'material', 'hoanThien');
+            }
+            if (laborModel === 'detailed') addItem('Labor: door & equipment installation', 1, 'package', 8000000, true, 'labor');
+            addItem('Aluminum doors & windows', totalArea * 0.18, 'm²', prices.cua_nhom[doorQuality], true, 'material', 'hoanThien');
+            addItem('Bedroom, toilet doors (engineered wood)', numBedrooms + numToilets, 'sets', prices.cua_go_cong_nghiep, true, 'material', 'hoanThien');
+            if (numFloors > 1) {
+                addItem('Staircase (steel, wood)', 4 * (numFloors - 1), 'm', prices.cau_thang_sat_go, true, 'material', 'hoanThien');
+            }
+            addItem('Sanitary equipment', numToilets, 'rooms', prices.thiet_bi_ve_sinh[sanitaryQuality], true, 'material', 'hoanThien');
+            addItem('Electrical equipment (switches, lights)', numBedrooms + numToilets + 2, 'rooms', prices.thiet_bi_dien_panasonic, true, 'material', 'hoanThien');
+            addItem('Upper & lower kitchen cabinets', kitchenLength, 'lm', prices.tu_bep_mdf, true, 'material', 'hoanThien');
+            addItem('Kitchen accessories (sink, faucet)', 1, 'package', prices.phu_kien_bep, true, 'material', 'hoanThien');
+            if (countertopType === 'da_bep') {
+                addItem('Stone kitchen countertop', kitchenLength, 'lm', prices.mat_da_bep, true, 'material', 'hoanThien');
+            } else {
+                addItem('Polished concrete countertop', kitchenLength, 'lm', prices.bep_betong_mai, true, 'material', 'hoanThien');
+            }
+
+            addCategory(laborModel === 'package' ? 'VI. AUXILIARY & EXTERIOR ITEMS' : 'V. AUXILIARY & EXTERIOR ITEMS', 'section-phuTroNgoaiThat');
+            addItem('Septic tank (rough work)', 1, 'package', prices.ham_tu_hoai, false, 'material', 'phuTroNgoaiThat');
+            addItem('Stainless steel water tank 1500L', 1, 'unit', prices.bon_nuoc_inox_1500l, false, 'material', 'phuTroNgoaiThat');
+            addItem('Water pump', 1, 'unit', prices.may_bom_nuoc, false, 'material', 'phuTroNgoaiThat');
+            addItem('Steel box gate', 15, 'm²', prices.cong_sat_hop, false, 'material', 'phuTroNgoaiThat');
+            addItem('Brick fence', 20, 'm', prices.hang_rao_xay_gach, false, 'material', 'phuTroNgoaiThat');
+
+            addCategory(laborModel === 'package' ? 'VII. OTHER COSTS' : 'VI. OTHER COSTS', 'section-khac');
+            addItem('Design & construction permit', 1, 'package', (totalArea * 150000) + 15000000, false, 'other');
+            addItem('Supervision & cleanup', 1, 'package', 0, false, 'other'); // Placeholder, will be calculated in updateTotals
+
+            addCategory('VIII. CONTINGENCY COSTS', 'section-duPhong');
+            addItem('Contingency (10%)', 1, 'package', 0, false, 'other'); // Placeholder
+
+            updateTotalsAndCharts();
+        }
+
+        function updateTotalsAndCharts() {
+            let totalMaterialCost = 0,
+                totalLaborCost = 0,
+                totalOtherCosts = 0;
+            let materialCostByCategory = {
+                ketCau: 0,
+                mai: 0,
+                xayToDienNuoc: 0,
+                hoanThien: 0,
+                phuTroNgoaiThat: 0
+            };
+
+            const allRows = tableBody.querySelectorAll('tr[data-cost]');
+            allRows.forEach(row => {
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (!checkbox || !checkbox.checked) return;
+
+                const cost = parseFloat(row.getAttribute('data-cost')) || 0;
+                const type = row.getAttribute('data-type');
+                const matCategory = row.getAttribute('data-material-category');
+
+                if (type === 'material') {
+                    totalMaterialCost += cost;
+                    if (matCategory) materialCostByCategory[matCategory] += cost;
+                } else if (type === 'labor') {
+                    totalLaborCost += cost;
+                } else if (type === 'other') {
+                    totalOtherCosts += cost;
+                }
+            });
+
+            // Update placeholder costs
+            const finalConstructionCost = totalMaterialCost + totalLaborCost;
+            const giamSatCost = (finalConstructionCost * 0.03) + 5000000;
+            const subtotal = finalConstructionCost + totalOtherCosts + giamSatCost;
+            const duPhongCost = subtotal * 0.1;
+
+            totalOtherCosts += giamSatCost + duPhongCost;
+
+            // Update the values in the table visually
+            allRows.forEach(row => {
+                const cell = row.querySelector('td:nth-child(2)');
+                if (cell && cell.innerText.includes('Supervision')) {
+                    row.cells[5].innerText = formatCurrency(giamSatCost);
+                }
+                if (cell && cell.innerText.includes('Contingency')) {
+                    row.cells[5].innerText = formatCurrency(duPhongCost);
+                }
+            });
+
+            const totalCost = finalConstructionCost + totalOtherCosts;
+            updateSummary(totalMaterialCost, totalLaborCost, totalOtherCosts, totalCost);
+            updateCostChart(totalMaterialCost, totalLaborCost, totalOtherCosts);
+            updateMaterialChart(materialCostByCategory);
+            updateMaterialSummaryTable(materialCostByCategory);
+
+            const area = parseFloat(inputs.houseArea.value) || 0;
+            const numFloors = parseInt(inputs.numFloors.value) || 1;
+            const totalArea = area * numFloors;
+            const numBedrooms = parseInt(inputs.bedrooms.value) || 0;
+            const numToilets = parseInt(inputs.toilets.value) || 0;
+            document.getElementById('print-summary-info').innerText = `Total TCA: ${totalArea} m², ${numBedrooms} BR, ${numToilets} WC. Total estimate: ${formatCurrency(totalCost)} VND`;
+        }
+
+        function updateMaterialSummaryTable(categoryData) {
+            materialSummaryBody.innerHTML = '';
+            const totalMaterial = Object.values(categoryData).reduce((a, b) => a + b, 0);
+            const categoryMeta = [{
+                id: 'hoanThien',
+                name: 'Finishing',
+                color: '#10b981',
+                sectionId: 'section-hoanThien'
+            }, {
+                id: 'ketCau',
+                name: 'Structure',
+                color: '#3b82f6',
+                sectionId: 'section-ketCau'
+            }, {
+                id: 'xayToDienNuoc',
+                name: 'Masonry & MEP',
+                color: '#f97316',
+                sectionId: 'section-xayToDienNuoc'
+            }, {
+                id: 'mai',
+                name: 'Roof',
+                color: '#ef4444',
+                sectionId: 'section-mai'
+            }, {
+                id: 'phuTroNgoaiThat',
+                name: 'Auxiliary & Exterior',
+                color: '#8b5cf6',
+                sectionId: 'section-phuTroNgoaiThat'
+            }];
+
+            categoryMeta.forEach(meta => {
+                const cost = categoryData[meta.id];
+                const percentage = totalMaterial > 0 ? ((cost / totalMaterial) * 100).toFixed(1) : 0;
+                const row = document.createElement('tr');
+                row.className = 'summary-interactive-row';
+                row.onclick = () => scrollToSection(meta.sectionId);
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm font-semibold text-slate-800"><div class="flex items-center"><div class="w-3 h-3 rounded-full mr-3" style="background-color: ${meta.color};"></div>${meta.name}</div></td>
+                    <td class="px-4 py-3 text-sm text-slate-700 text-right">${formatCurrency(cost)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-700 text-right">${percentage}%</td>
+                `;
+                materialSummaryBody.appendChild(row);
+            });
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                section.classList.add('highlight-section');
+                setTimeout(() => section.classList.remove('highlight-section'), 2000);
+            }
+        }
+
+        function updateSummary(material, labor, other, total) {
+            summaryDiv.innerHTML = `
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200 col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-4"><div class="p-3 bg-blue-100 rounded-full"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 10v-1m0-6h.01M6 12H5m14 0h-1m-7 6a6 6 0 100-12 6 6 0 000 12z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">TOTAL ESTIMATED COST</h3><p class="mt-1 text-3xl font-bold text-blue-600">${formatCurrency(total)} <span class="text-2xl">VND</span></p></div></div></div>
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-green-100 rounded-full"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Material Costs</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(material)}</p></div></div></div>
+                <div class="summary-card bg-white p-4 rounded-lg shadow-md border border-slate-200"><div class="flex items-center gap-4"><div class="p-3 bg-amber-100 rounded-full"><svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283-.356-1.857m0 0a3.002 3.002 0 013.428 0M11 16a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div><div><h3 class="text-sm font-medium text-slate-500">Labor Costs</h3><p class="mt-1 text-xl font-semibold text-slate-800">${formatCurrency(labor)}</p></div></div></div>
+            `;
+        }
+
+        const chartCenterText = {
+            id: 'chartCenterText',
+            beforeDraw(chart, args, options) {
+                if (!options.text) return;
+                const {
+                    ctx,
+                    chartArea: {
+                        top,
+                        right,
+                        bottom,
+                        left,
+                        width,
+                        height
+                    }
+                } = chart;
+                ctx.save();
+                ctx.font = options.font || 'bold 16px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = options.color || '#334155';
+                const textLines = options.text.split('\n');
+                const lineHeight = (parseInt(ctx.font, 10) * 1.2);
+                const totalHeight = lineHeight * textLines.length;
+                let y = top + (height - totalHeight) / 2 + (lineHeight / 2);
+
+                textLines.forEach(line => {
+                    ctx.fillText(line, left + width / 2, y);
+                    y += lineHeight;
+                });
+                ctx.restore();
+            }
+        };
+        Chart.register(chartCenterText);
+
+        function updateCostChart(material, labor, other) {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            if (costChart) {
+                costChart.destroy();
+            }
+            costChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Materials', 'Labor', 'Other & Contingency'],
+                    datasets: [{
+                        data: [material, labor, other],
+                        backgroundColor: ['#10B981', '#F59E0B', '#6366F1'],
+                        borderColor: '#f8fafc',
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                boxWidth: 12,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(c) {
+                                    const total = c.dataset.data.reduce((a, b) => a + b, 0);
+                                    const p = total > 0 ? ((c.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${c.label}: ${formatCurrency(c.parsed)} VND (${p}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMaterialChart(categoryData) {
+            const ctx = document.getElementById('materialChart').getContext('2d');
+            if (materialChart) {
+                materialChart.destroy();
+            }
+            const totalMaterial = Object.values(categoryData).reduce((a, b) => a + b, 0);
+            materialChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Finishing', 'Structure', 'Masonry & MEP', 'Roof', 'Auxiliary & Ext'],
+                    datasets: [{
+                        data: [categoryData.hoanThien, categoryData.ketCau, categoryData.xayToDienNuoc, categoryData.mai, categoryData.phuTroNgoaiThat],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f97316', '#ef4444', '#8b5cf6'],
+                        borderColor: '#f8fafc',
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        chartCenterText: {
+                            text: `${formatCurrency(totalMaterial)}\nVND`,
+                            color: '#1e293b',
+                            font: 'bold 18px Inter'
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 10,
+                                boxWidth: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(c) {
+                                    const total = c.dataset.data.reduce((a, b) => a + b, 0);
+                                    const p = total > 0 ? ((c.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${c.label}: ${formatCurrency(c.parsed)} VND (${p}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function handlePrimaryInputChange() {
+            calculateAndRender();
+        }
+
+        document.querySelectorAll('input, select').forEach(input => input.addEventListener('input', handlePrimaryInputChange));
+        document.querySelectorAll('input[name="laborModel"]').forEach(radio => radio.addEventListener('change', handlePrimaryInputChange));
+        tableBody.addEventListener('change', (event) => {
+            if (event.target.type === 'checkbox') {
+                updateTotalsAndCharts();
+            }
+        });
+        window.addEventListener('load', handlePrimaryInputChange);
+    </script>
+</body>
+
+</html>
